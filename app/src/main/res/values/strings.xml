@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Flash Cards</string>
+    <string name="new_deck">New Deck</string>
+    <string name="new_folder">New Folder</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+</resources>
