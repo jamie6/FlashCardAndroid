@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:contentPadding="16dp"
+        app:cardCornerRadius="16dp">
+        <RelativeLayout
+            android:id="@+id/termLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/idTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="id: "
+                android:layout_alignParentRight="true"/>
+            <TextView
+                android:id="@+id/termTextView"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="(front) Term: "
+                android:layout_below="@id/idTextView"/>
+            <EditText
+                android:id="@+id/termEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/termTextView"/>
+
+            <ImageView
+                android:id="@+id/card_edit_divider"
+                android:contentDescription="dotted line"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/termEditText"
+                android:src="@drawable/dotted_line"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/definitionTextView"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="(back) Definition: "
+                android:layout_below="@id/card_edit_divider"/>
+            <EditText
+                android:id="@+id/definitionEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/definitionTextView" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>

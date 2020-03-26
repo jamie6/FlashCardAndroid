@@ -14,6 +14,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DeckManager.setCurrentDirectoryPath(getFilesDir().getAbsolutePath()+"/"+DeckManager.MAIN_DECKS_FOLDER);
+
         setContentView(R.layout.activity_main);
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);

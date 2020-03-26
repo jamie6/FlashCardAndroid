@@ -4,4 +4,5 @@
     <string name="new_folder">New Folder</string>
     <string name="home">Home</string>
     <string name="search">Search</string>
+    <string name="default_deck_name">New Deck</string>
 </resources>
