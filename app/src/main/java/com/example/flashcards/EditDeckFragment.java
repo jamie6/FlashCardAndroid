@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditDeckFragment extends Fragment {
-    private List<Item> list = new ArrayList<>();
+    private List<Card> list = new ArrayList<>();
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -45,14 +45,13 @@ public class EditDeckFragment extends Fragment {
                 addCard();
             }
         });
-        List<Item> list = new ArrayList<>();
         addCard();
     }
 
     @Override
     public void onStop() {
         prepareList();
-        String contents = getContents();
+        String contents = DeckManager.getDeckJSONArray(list).toString();
         Log.d("editdeck", contents);
         EditText nameEditText = getView().findViewById(R.id.edit_deck_name_edit_text);
         String deckName = nameEditText.getText().length() > 0 ? nameEditText.getText().toString() : getResources().getString(R.string.default_deck_name);
@@ -70,7 +69,7 @@ public class EditDeckFragment extends Fragment {
         View view = getView();
         LinearLayout linearLayout = view.findViewById(R.id.cards_linear_layout);
         View editCard;
-        Item item;
+        Card item;
         EditText termEditText;
         EditText definitionEditText;
         for (int i = 0; i < linearLayout.getChildCount() && i < list.size(); i++) {
@@ -84,53 +83,17 @@ public class EditDeckFragment extends Fragment {
         }
     }
 
-    private String getContents() {
-        StringBuilder output = new StringBuilder();
-
-        output.append("[\n");
-        for (Item item : list) {
-            output.append("{\n\"term\":\"");
-            output.append(item.getTerm());
-            output.append("\",\n");
-
-            output.append("\"definition\":\"");
-            output.append(item.getDefinition());
-            output.append("\"\n},\n");
-        }
-        output.append("]");
-
-        return output.toString();
-    }
-
     private void addCard() {
         Context context = getContext();
         LayoutInflater layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View cardEditView = layoutInflater.inflate(R.layout.card_edit, null);
 
-        Item item = new Item();
+        Card item = new Card();
         list.add(item);
         cardEditView.setTag(item);
 
         View view = getView();
         LinearLayout linearLayout = view.findViewById(R.id.cards_linear_layout);
         linearLayout.addView(cardEditView);
-    }
-
-    public class Item {
-        private String term, definition;
-
-        public Item() {
-            setTerm("");
-            setDefinition("");
-        }
-
-        public Item(String term, String definition) {
-            setTerm(term);
-            setDefinition(definition);
-        }
-        public String getTerm() { return term; }
-        public void setTerm(String term) { this.term = term; }
-        public String getDefinition() { return definition; }
-        public void setDefinition(String definition) { this.definition = definition; }
     }
 }

@@ -1,16 +1,27 @@
 package com.example.flashcards;
 
 import android.os.Environment;
+import android.util.JsonReader;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class DeckManager {
-    public static String MAIN_DECKS_FOLDER = "DECKS";
-    public static String DECK_EXT = ".deck";
+    public static final String FOLDER_TAG = "FOLDER";
+    public static final String DECK_TAG = "DECK";
+    public static final String MAIN_DECKS_FOLDER = "DECKS";
+    public static final String DECK_EXT = ".deck";
     public static String currentDirectoryPath;
 
     public static void setCurrentDirectoryPath(String path) {
@@ -52,12 +63,63 @@ public class DeckManager {
     }
 
     public static void moveItem() {
+    }
 
+    public static boolean deleteItem(String itemName, boolean isFolder) {
+        if (isFolder) {
+            return deleteFolder(itemName);
+        } else {
+            return deleteDeck(itemName);
+        }
+    }
+
+    private static boolean deleteDeck(String deckName) {
+        return deleteDeck(deckName, currentDirectoryPath);
+    }
+
+    private static boolean deleteDeck(String deckName, String path) {
+        if (!isThisADeckFile(deckName)) {
+            deckName += DECK_EXT;
+        }
+        File file = new File(path + "/" + deckName);
+        return file.delete();
+    }
+
+    private static boolean deleteFolder(String folderName) {
+        return deleteFolder(folderName, currentDirectoryPath);
+    }
+
+    private static boolean deleteFolder(String folderName, String path) {
+        File folder = new File(path + "/" + folderName);
+        String[] list = folder.list();
+        for (String item : list) {
+            if (isThisADeckFile(item)) {
+                deleteDeck(item, folder.getPath());
+            } else {
+                deleteFolder(item, folder.getPath());
+            }
+        }
+        return folder.delete();
     }
 
     public static String[] getCurrentDirectoryList() {
         File file = new File(currentDirectoryPath);
         return file.list();
+    }
+
+    public static String[] getFolderNamesInCurrentDirectory() {
+        File file = new File(currentDirectoryPath);
+        String[] list = file.list();
+
+        List<String> folderNames = new LinkedList<>();
+        for (String item : list) {
+            if (!isThisADeckFile(item)) {
+                folderNames.add(item);
+            }
+        }
+        String[] folderNamesArr = new String[folderNames.size()];
+        folderNames.toArray(folderNamesArr);
+        return folderNamesArr;
     }
 
     public static String[] getDeckNamesInCurrentDirectory() {
@@ -120,6 +182,75 @@ public class DeckManager {
 
     private static boolean isThisADeckFile(String str) {
         return str.matches("(.+)" + DECK_EXT);
+    }
+
+    public static Card[] getDeckFromFile(String deckName) {
+        Card[] deck = null;
+        try {
+            String deckContent = getContentFromDeckFile(deckName);
+            deck = parseDeckContent(deckContent);
+        } catch (IOException e) {
+            return null;
+        }
+        return deck;
+    }
+
+    private static Card[] parseDeckContent(String deckContent) throws IOException {
+        List<Card> deck = new LinkedList<>();
+        JsonReader jsonReader = new JsonReader(new StringReader(deckContent));
+        jsonReader.beginArray();
+        while (jsonReader.hasNext()) {
+            deck.add(readCardFromJsonReader(jsonReader));
+        }
+        jsonReader.endArray();
+        Card[] deckArr = new Card[deck.size()];
+        deck.toArray(deckArr);
+        return deckArr;
+    }
+
+    private static Card readCardFromJsonReader(JsonReader jsonReader) throws IOException {
+        String term = "";
+        String definition = "";
+
+        jsonReader.beginObject();
+        while (jsonReader.hasNext()) {
+            String name = jsonReader.nextName();
+            if (name.equals(Card.TERM)) {
+                term = jsonReader.nextString();
+            } else if (name.equals(Card.DEFINITION)) {
+                definition = jsonReader.nextString();
+            } else {
+                jsonReader.skipValue();
+            }
+        }
+        jsonReader.endObject();
+        return new Card(term, definition);
+    }
+
+    public static JSONArray getDeckJSONArray(List<Card> deck) {
+        JSONArray deckJSON = new JSONArray();
+        for (Card card : deck) {
+            deckJSON.put(card.getJSONObject());
+        }
+        return deckJSON;
+    }
+
+    private static String getContentFromDeckFile(String deckName) throws IOException {
+        if (!isThisADeckFile(deckName)) {
+            deckName += DECK_EXT;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        File file = new File(currentDirectoryPath + "/" + deckName);
+        if (file.exists()) {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+            bufferedReader.close();
+        }
+
+        return stringBuilder.toString();
     }
 
     public static class Item {
