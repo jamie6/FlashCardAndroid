@@ -10,11 +10,13 @@ import android.view.MenuItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean goBackToBaseDirectory = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DeckManager.setCurrentDirectoryPath(getFilesDir().getAbsolutePath()+"/"+DeckManager.MAIN_DECKS_FOLDER);
+        DeckManager.setBaseDirectoryPath(getFilesDir().getAbsolutePath()+"/"+DeckManager.MAIN_DECKS_FOLDER);
+        DeckManager.resetCurrentDirectoryToBaseDirectory();
 
         setContentView(R.layout.activity_main);
 
@@ -33,12 +35,24 @@ public class MainActivity extends AppCompatActivity {
 
                     switch (item.getItemId()) {
                         case R.id.nav_home:
+                            if (goBackToBaseDirectory) {
+                                DeckManager.resetCurrentDirectoryToBaseDirectory();
+                            }
+
+                            if (DeckManager.isCurrentDirectoryAtBaseDirectory()) {
+                                goBackToBaseDirectory = false;
+                            } else {
+                                goBackToBaseDirectory = true;
+                            }
+
                             selectedFragment = new HomeFragment();
                             break;
                         case R.id.nav_search:
+                            goBackToBaseDirectory = false;
                             selectedFragment = new SearchFragment();
                             break;
                         case R.id.nav_new_folder:
+                            goBackToBaseDirectory = false;
                             selectedFragment = new NewFolderFragment();
                             break;
                     }

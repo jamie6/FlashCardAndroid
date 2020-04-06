@@ -14,8 +14,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,6 +21,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
     private int selectionCount = 0;
@@ -32,7 +33,7 @@ public class HomeFragment extends Fragment {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mode.getMenuInflater().inflate(R.menu.dir_select_menu, menu);
-            mode.setTitle("Select items");
+            mode.setTitle("Select items ");
             return true;
         }
 
@@ -102,6 +103,14 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    @Override
+    public void onStop() {
+        if (actionMode != null) {
+            actionMode.finish();
+        }
+        super.onStop();
+    }
+
     private void setNameEditVisibility(View dirItem, boolean isVisible) {
         if (isVisible) {
             TextView textView = dirItem.findViewById(R.id.dir_item_name);
@@ -134,13 +143,23 @@ public class HomeFragment extends Fragment {
                 } else {
                     // open deck reader/view page
                     TextView textView = v.findViewById(R.id.dir_item_name);
-                    String deckName = textView.getText().toString();
-                    Bundle bundle = new Bundle();
-                    bundle.putString("deckName", deckName);
-                    Fragment viewDeckFragment = new ViewDeckFragment();
-                    viewDeckFragment.setArguments(bundle);
-                    getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                            viewDeckFragment).commit();
+                    String tag = (String)textView.getTag();
+                    if (tag.equals(DeckManager.DECK_TAG)) {
+                        String deckName = textView.getText().toString();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("deckName", deckName);
+                        Fragment viewDeckFragment = new ViewDeckFragment();
+                        viewDeckFragment.setArguments(bundle);
+                        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                                viewDeckFragment).commit();
+                    } else if (tag.equals(DeckManager.FOLDER_TAG)) {
+                        DeckManager.setCurrentDirectoryPath(DeckManager.getCurrentDirectoryPath() + "/" + textView.getText().toString());
+                        LinearLayout linearLayout = getView().findViewById(R.id.directory_linear_layout);
+                        linearLayout.removeAllViews();
+                        for (String item : DeckManager.getCurrentDirectoryList()) {
+                            addDirItem(item);
+                        }
+                    }
                 }
             }
         });
@@ -184,6 +203,7 @@ public class HomeFragment extends Fragment {
         }
         textView.setText(name);
 
+        // this button shows when editing the name of a dir item
         ImageButton imageButton = dirItemView.findViewById(R.id.dir_item_name_edit_button);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -206,20 +226,29 @@ public class HomeFragment extends Fragment {
     }
 
     private void deleteItem() {
+        List<View> deleteThisList = new LinkedList<>();
         LinearLayout linearLayout = getView().findViewById(R.id.directory_linear_layout);
         for ( int i = 0; i < linearLayout.getChildCount(); i++ ) {
             View view = linearLayout.getChildAt(i);
-            TextView textView = view.findViewById(R.id.dir_item_name);
-            switch(textView.getTag().toString()) {
-                case DeckManager.DECK_TAG:
-                    DeckManager.deleteItem(textView.getText().toString(), false);
-                    break;
-                case DeckManager.FOLDER_TAG:
-                    DeckManager.deleteItem(textView.getText().toString(), true);
-                    break;
-                default:
-                    break;
+            CheckBox checkBox = view.findViewById(R.id.dir_item_select);
+            if (checkBox.isChecked()) {
+                deleteThisList.add(view);
+                TextView textView = view.findViewById(R.id.dir_item_name);
+                switch (textView.getTag().toString()) {
+                    case DeckManager.DECK_TAG:
+                        DeckManager.deleteItem(textView.getText().toString(), false);
+                        break;
+                    case DeckManager.FOLDER_TAG:
+                        DeckManager.deleteItem(textView.getText().toString(), true);
+                        break;
+                    default:
+                        break;
+                }
             }
+        }
+
+        for (int i = 0; i < deleteThisList.size(); i++ ) {
+            linearLayout.removeView(deleteThisList.get(i));
         }
     }
 
@@ -261,9 +290,9 @@ public class HomeFragment extends Fragment {
     private void updateActionModeTitleCount() {
         if (actionMode != null) {
             if (selectionCount > 0) {
-                actionMode.setTitle(selectionCount + "selected");
+                actionMode.setTitle(selectionCount + " selected");
             } else {
-                actionMode.setTitle("Select items");
+                actionMode.setTitle("Select items ");
             }
         }
     }

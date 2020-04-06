@@ -22,7 +22,20 @@ public class DeckManager {
     public static final String DECK_TAG = "DECK";
     public static final String MAIN_DECKS_FOLDER = "DECKS";
     public static final String DECK_EXT = ".deck";
-    public static String currentDirectoryPath;
+    private static String BASE_DIRECTORY;
+    private static String currentDirectoryPath;
+
+    public static void setBaseDirectoryPath(String path) {
+        BASE_DIRECTORY = path;
+    }
+
+    public static void resetCurrentDirectoryToBaseDirectory() {
+        currentDirectoryPath = BASE_DIRECTORY;
+    }
+
+    public static boolean isCurrentDirectoryAtBaseDirectory() {
+        return currentDirectoryPath.equals(BASE_DIRECTORY);
+    }
 
     public static void setCurrentDirectoryPath(String path) {
         currentDirectoryPath = path;
@@ -30,6 +43,10 @@ public class DeckManager {
         if (!file.exists()) {
             file.mkdir();
         }
+    }
+
+    public static String getCurrentDirectoryPath() {
+        return currentDirectoryPath;
     }
 
     public static boolean createNewDeck(String newDeckName, String contents) throws IOException {
@@ -180,8 +197,8 @@ public class DeckManager {
         return str.matches("(\\d+)");
     }
 
-    private static boolean isThisADeckFile(String str) {
-        return str.matches("(.+)" + DECK_EXT);
+    public static boolean isThisADeckFile(String str) {
+        return str.matches("(.+)\\" + DECK_EXT); // "\\" used to ignore period "."
     }
 
     public static Card[] getDeckFromFile(String deckName) {
