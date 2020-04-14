@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/dir_navigation_back"
+        android:icon="@drawable/ic_arrow_back_white_24dp"
+        android:title="Back to Previous Folder"/>
+</menu>

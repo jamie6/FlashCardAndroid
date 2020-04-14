@@ -45,6 +45,28 @@ public class DeckManager {
         }
     }
 
+    public static String[] getBreadcrumbs() {
+        String directoryPath = currentDirectoryPath.substring(currentDirectoryPath.indexOf(MAIN_DECKS_FOLDER));
+        String[] breadcrumbs = directoryPath.split("/");
+        return breadcrumbs;
+    }
+
+    public static String getCurrentFolderName() {
+        int index = currentDirectoryPath.lastIndexOf("/");
+        if (index > -1 && index < currentDirectoryPath.length() - 1) {
+            return currentDirectoryPath.substring(index + 1);
+        }
+        return "";
+    }
+
+    public static String moveUpDirectory() {
+        if (!isCurrentDirectoryAtBaseDirectory()) {
+            int index = currentDirectoryPath.lastIndexOf("/");
+            currentDirectoryPath = currentDirectoryPath.substring(0, index);
+        }
+        return currentDirectoryPath;
+    }
+
     public static String getCurrentDirectoryPath() {
         return currentDirectoryPath;
     }

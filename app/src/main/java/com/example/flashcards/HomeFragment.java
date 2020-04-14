@@ -29,7 +29,6 @@ public class HomeFragment extends Fragment {
     private int selectionCount = 0;
     private ActionMode actionMode;
     private ActionMode.Callback callback = new ActionMode.Callback() {
-
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mode.getMenuInflater().inflate(R.menu.dir_select_menu, menu);
@@ -60,6 +59,7 @@ public class HomeFragment extends Fragment {
             setDirectoryItemCheckboxVisibility(View.INVISIBLE);
             setAllCheckBoxes(false);
             actionMode = null;
+            // actionMode = getActivity().startActionMode(navigationCallBack);
         }
     };
 
@@ -72,10 +72,23 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        updateBreadcrumbs();
         String[] list = DeckManager.getCurrentDirectoryList();
         for (String item : list) {
             addDirItem(item);
         }
+
+        ImageButton dirNavBarBackButton = view.findViewById(R.id.dir_nav_bar_back_button);
+        dirNavBarBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!DeckManager.isCurrentDirectoryAtBaseDirectory()) {
+                    DeckManager.moveUpDirectory();
+                    updateDirectoryView();
+                    updateBreadcrumbs();
+                }
+            }
+        });
 
         FloatingActionButton fab = getView().findViewById(R.id.new_deck_fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -109,6 +122,66 @@ public class HomeFragment extends Fragment {
             actionMode.finish();
         }
         super.onStop();
+    }
+
+    private void updateBreadcrumbs() {
+        setDirectoryBackButtonVisibility(!DeckManager.isCurrentDirectoryAtBaseDirectory());
+
+        View view = getView();
+        Context context = getContext();
+        TextView currentFolderTextView = view.findViewById(R.id.dir_nav_bar_current_folder_text_view);
+        currentFolderTextView.setText(DeckManager.getCurrentFolderName());
+
+        LinearLayout linearLayout = view.findViewById(R.id.directory_nav_bar_breadcrumb_linear_layout);
+        linearLayout.removeAllViews();
+        for (final String breadcrumb : DeckManager.getBreadcrumbs()) {
+            TextView breadcrumbTextView = new TextView(context);
+            breadcrumbTextView.setTag(breadcrumb);
+            breadcrumbTextView.setText(breadcrumb);
+            breadcrumbTextView.setPadding(8, 8, 8, 8);
+            breadcrumbTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (v.getTag().equals(breadcrumb)) {
+                        TextView textView = (TextView)v;
+                        String currentBreadcrumb = textView.getText().toString();
+                        String[] breadcrumbs = DeckManager.getBreadcrumbs();
+                        if (!breadcrumbs[breadcrumbs.length-1].equals(currentBreadcrumb)) {
+                            List<String> bcList = new LinkedList<>();
+                            for (String bc : breadcrumbs) {
+                                bcList.add(bc);
+                                if (bc.equals(currentBreadcrumb)) {
+                                    break;
+                                }
+                            }
+
+                            int diff = breadcrumbs.length - bcList.size();
+                            for ( int i = 0; i < diff; i++ ) {
+                                DeckManager.moveUpDirectory();
+                            }
+                            updateBreadcrumbs();
+                            updateDirectoryView();
+                        }
+                    }
+                }
+            });
+
+            linearLayout.addView(breadcrumbTextView);
+            if (!breadcrumb.equals(DeckManager.getCurrentFolderName())) {
+                ImageView imageView = new ImageView(context);
+                imageView.setImageResource(R.drawable.ic_arrow_black_24dp);
+                linearLayout.addView(imageView);
+            }
+        }
+    }
+
+    private void setDirectoryBackButtonVisibility(boolean isVisible) {
+        ImageButton imageButton = getView().findViewById(R.id.dir_nav_bar_back_button);
+        if (isVisible) {
+            imageButton.setVisibility(View.VISIBLE);
+        } else {
+            imageButton.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void setNameEditVisibility(View dirItem, boolean isVisible) {
@@ -153,12 +226,10 @@ public class HomeFragment extends Fragment {
                         getFragmentManager().beginTransaction().replace(R.id.fragment_container,
                                 viewDeckFragment).commit();
                     } else if (tag.equals(DeckManager.FOLDER_TAG)) {
-                        DeckManager.setCurrentDirectoryPath(DeckManager.getCurrentDirectoryPath() + "/" + textView.getText().toString());
-                        LinearLayout linearLayout = getView().findViewById(R.id.directory_linear_layout);
-                        linearLayout.removeAllViews();
-                        for (String item : DeckManager.getCurrentDirectoryList()) {
-                            addDirItem(item);
-                        }
+                        String folderName = textView.getText().toString();
+                        DeckManager.setCurrentDirectoryPath(DeckManager.getCurrentDirectoryPath() + "/" + folderName);
+                        updateDirectoryView();
+                        updateBreadcrumbs();
                     }
                 }
             }
@@ -223,6 +294,14 @@ public class HomeFragment extends Fragment {
         LinearLayout linearLayout = getView().findViewById(R.id.directory_linear_layout);
         linearLayout.addView(dirItemView);
         return dirItemView;
+    }
+
+    private void updateDirectoryView() {
+        LinearLayout linearLayout = getView().findViewById(R.id.directory_linear_layout);
+        linearLayout.removeAllViews();
+        for (String item : DeckManager.getCurrentDirectoryList()) {
+            addDirItem(item);
+        }
     }
 
     private void deleteItem() {

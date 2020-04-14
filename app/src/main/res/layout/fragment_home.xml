@@ -2,10 +2,18 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <ScrollView
+    <FrameLayout
+        android:id="@+id/home_frameLayout_breadcrumb"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
+        <include
+            layout="@layout/directory_nav_bar"/>
+    </FrameLayout>
+    <ScrollView
+        android:id="@+id/home_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/home_frameLayout_breadcrumb">
         <LinearLayout
             android:id="@+id/directory_linear_layout"
             android:layout_width="match_parent"
